@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "Sarah Johnson",
+    "position": "Marketing Manager",
+    "emotion": "happy",
+    "recommendation": "Maintain current engagement strategies"
+  },
+  {
+    "id": 2,
+    "name": "Michael Chen",
+    "position": "Software Engineer",
+    "emotion": "stressed",
+    "recommendation": "Schedule workload review and offer flexible hours"
+  },
+  {
+    "id": 3,
+    "name": "Emma Rodriguez",
+    "position": "HR Specialist",
+    "emotion": "tired",
+    "recommendation": "Recommend taking PTO and evaluate workload"
+  },
+  {
+    "id": 4,
+    "name": "Daniel Okafor",
+    "position": "Data Analyst",
+    "emotion": "focused",
+    "recommendation": "Encourage continued concentration and provide support"
+  },
+  {
+    "id": 5,
+    "name": "Liam Patel",
+    "position": "UX Designer",
+    "emotion": "frustrated",
+    "recommendation": "Initiate 1:1 to understand blockers and improve tools"
+  },
+  {
+    "id": 6,
+    "name": "Isabella Martinez",
+    "position": "Product Owner",
+    "emotion": "motivated",
+    "recommendation": "Consider assigning leadership in new initiative"
+  },
+  {
+    "id": 7,
+    "name": "Noah Kim",
+    "position": "DevOps Engineer",
+    "emotion": "burned out",
+    "recommendation": "Enforce rest periods and reassign some responsibilities"
+  },
+  {
+    "id": 8,
+    "name": "Ava Thompson",
+    "position": "Content Strategist",
+    "emotion": "bored",
+    "recommendation": "Assign new challenges or cross-team collaboration"
+  },
+  {
+    "id": 9,
+    "name": "Ethan Nguyen",
+    "position": "QA Engineer",
+    "emotion": "neutral",
+    "recommendation": "Check-in periodically and monitor for any changes"
+  },
+  {
+    "id": 10,
+    "name": "Olivia Davis",
+    "position": "Customer Support Lead",
+    "emotion": "anxious",
+    "recommendation": "Offer stress-relief resources and encourage openness"
+  }
+]

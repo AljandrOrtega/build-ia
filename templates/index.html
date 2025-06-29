@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMIE_RRHH</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index_style.css') }}">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563eb',
+            secondary: '#1e40af',
+            accent: '#0ea5e9'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="header-title">SAMIE_RRHH</h1>
+      <p class="header-description">
+        Real-time facial emotion detection with HR recommendations for employee well-being
+      </p>
+    </header>
+
+    <div class="grid-container">
+      <!-- Camera Section -->
+      <div class="camera-section">
+        <div class="camera-header">
+          <h2>Live Emotion Detection</h2>
+          <div class="camera-buttons">
+            <button id="startBtn" class="start-button">
+              Start Camera
+            </button>
+            <button id="stopBtn" class="stop-button">
+              Stop Camera
+            </button>
+          </div>
+        </div>
+
+        <div class="camera-status-container">
+          <div id="cameraStatus" class="camera-status">
+            Camera Inactive
+          </div>
+        </div>
+
+        <div class="video-container">
+          <video id="videoFeed" class="video-feed" autoplay muted playsinline></video>
+        </div>
+
+        <div class="camera-instructions">
+          <p>Position your face in the frame for analysis</p>
+        </div>
+      </div>
+
+      <!-- Analysis Results -->
+      <div class="analysis-section">
+        <h2 class="analysis-title">Analysis Results</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card faces-detected">
+            <h3>Faces Detected</h3>
+            <p id="faceCount" class="stat-value">0</p>
+          </div>
+          <div class="stat-card emotion-result">
+            <h3>Detected Emotion</h3>
+            <p id="emotionResult" class="stat-value">-</p>
+          </div>
+        </div>
+
+        <div class="recommendation-section">
+          <h3>HR Recommendation</h3>
+          <div id="recommendationResult" class="recommendation-box">
+            <p class="placeholder-text">Analysis results will appear here</p>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <h3>About the Analysis</h3>
+          <p>
+            Our AI analyzes facial expressions to help HR teams identify employee well-being needs
+            and provide timely support.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/index_scr.js') }}" defer></script>
+</body>
+
+</html>

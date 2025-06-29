@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMIE-HR - Dashboard Integral</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .emotion-indicator {
+            transition: all 0.3s ease;
+        }
+        #videoElement {
+            transform: scaleX(1);
+            background-color: #000;
+        }
+        .face-overlay {
+            position: absolute;
+            border: 2px solid rgba(0, 255, 0, 0.7);
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .performance-line {
+            position: relative;
+            height: 4px;
+            background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
+        }
+        .performance-marker {
+            position: absolute;
+            top: -6px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            transition: left 0.5s ease;
+        }
+        .crown-icon {
+            color: #f59e0b;
+            text-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+            animation: pulse 2s infinite;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Pantalla principal de selección -->
+    <div id="mainDashboard" class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-blue-800 text-white p-4 flex flex-col">
+            <h1 class="text-2xl font-bold mb-8 flex items-center">
+                <i class="fas fa-brain mr-2"></i> SAMIE-HR
+            </h1>
+            
+            <div class="mb-6">
+                <div class="relative">
+                    <input type="text" placeholder="Buscar empleado..." class="w-full bg-blue-700 text-white px-4 py-2 rounded-lg placeholder-blue-200">
+                    <i class="fas fa-search absolute right-3 top-2.5 text-blue-300"></i>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="text-blue-200 uppercase text-xs font-bold mb-2">Filtrar por Estado</h3>
+                <ul>
+                    <li class="py-2 px-2 rounded hover:bg-blue-700 cursor-pointer flex items-center dashboard-filter" data-filter="all">
+                        <i class="fas fa-users mr-2 text-sm"></i> Todos los empleados
+                    </li>
+                    <li class="py-2 px-2 rounded hover:bg-blue-700 cursor-pointer flex items-center dashboard-filter" data-filter="positive">
+                        <i class="fas fa-crown mr-2 text-yellow-300"></i> Alto desempeño
+                    </li>
+                    <li class="py-2 px-2 rounded hover:bg-blue-700 cursor-pointer flex items-center dashboard-filter" data-filter="neutral">
+                        <i class="fas fa-meh mr-2 text-blue-300"></i> Desempeño normal
+                    </li>
+                    <li class="py-2 px-2 rounded hover:bg-blue-700 cursor-pointer flex items-center dashboard-filter" data-filter="negative">
+                        <i class="fas fa-frown mr-2 text-red-300"></i> Bajo desempeño
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="mt-auto mb-4">
+                <button id="awardButton" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-trophy mr-2"></i> Premiar al empleado del mes
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Bar -->
+            <header class="bg-white border-b border-gray-200 py-3 px-6 flex justify-between items-center">
+                <h2 id="dashboardTitle" class="text-xl font-semibold text-gray-800">Todos los Empleados</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-bell text-gray-500"></i>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </div>
+                    <div class="flex items-center">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile" class="w-8 h-8 rounded-full mr-2">
+                        <span class="text-gray-700">Admin RRHH</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Employee Grid -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Performance Scale -->
+                <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                    <h3 class="text-sm font-semibold text-gray-500 mb-2">Rendimiento Emocional del Equipo</h3>
+                    <div class="performance-line">
+                        <div id="performanceMarker" class="performance-marker bg-gray-800" style="left: 65%;"></div>
+                    </div>
+                    <div class="flex justify-between mt-1 text-xs text-gray-500">
+                        <span>Bajo</span>
+                        <span>Neutral</span>
+                        <span>Alto</span>
+                    </div>
+                </div>
+                
+                <div id="employeesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Employee cards will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de monitoreo de empleado -->
+    <div id="employeeMonitoring" class="hidden fixed inset-0 bg-gray-900 text-white overflow-y-auto">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <button id="backButton" class="flex items-center text-blue-400 hover:text-blue-300">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver al dashboard
+                </button>
+                <div>
+                    <h1 class="text-3xl font-bold text-center">Monitoreo en Tiempo Real</h1>
+                    <p class="text-center text-blue-300" id="monitoringStatus"></p>
+                </div>
+                <div class="w-32 flex justify-end">
+                    <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span id="currentTime">--:--</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Columna izquierda: Información del empleado -->
+                <div class="lg:col-span-1 bg-gray-800 rounded-xl p-6">
+                    <div class="flex items-center mb-6">
+                        <img id="monitoringEmployeeImg" src="" alt="Empleado" class="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg">
+                        <div class="ml-4">
+                            <h2 id="monitoringEmployeeName" class="text-2xl font-bold"></h2>
+                            <p id="monitoringEmployeeRole" class="text-gray-400"></p>
+                            <div class="mt-1 flex items-center">
+                                <span id="employeeStatus" class="px-2 py-1 rounded-full text-xs font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                                <i class="fas fa-user-tag mr-2 text-blue-400"></i> Información Laboral
+                            </h3>
+                            <div class="space-y-2">
+                                <p><span class="text-gray-400">Horario:</span> <span id="workSchedule"></span></p>
+                                <p><span class="text-gray-400">Días trabajados:</span> <span id="daysWorked"></span></p>
+                                <p><span class="text-gray-400">Proyecto actual:</span> <span id="currentProject"></span></p>
+                                <p><span class="text-gray-400">Última evaluación:</span> <span id="lastEvaluation"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-700 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                                <i class="fas fa-history mr-2 text-purple-400"></i> Historial Reciente
+                            </h3>
+                            <div class="space-y-3 max-h-60 overflow-y-auto" id="historyContainer">
+                                <!-- Historial se llenará dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Columna central: Cámara y emociones -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Video Feed con overlay de horario no laboral -->
+                    <div class="bg-gray-800 rounded-xl overflow-hidden relative">
+                        <div class="relative">
+                            <video id="videoElement" autoplay playsinline class="w-full h-auto max-h-96 object-cover"></video>
+                            <div id="faceOverlay" class="face-overlay hidden"></div>
+                            <div id="nonWorkHoursOverlay" class="blur-overlay hidden">
+                                <i class="fas fa-clock text-5xl mb-4 text-yellow-400"></i>
+                                <h3 class="text-xl font-bold mb-2">Fuera del horario laboral</h3>
+                                <p class="text-gray-300">La cámara se activará automáticamente<br>de 9:00 AM a 6:00 PM</p>
+                            </div>
+                            <div id="cameraDisabledOverlay" class="blur-overlay hidden">
+                                <i class="fas fa-video-slash text-5xl mb-4 text-red-400"></i>
+                                <h3 class="text-xl font-bold mb-2">Cámara no disponible</h3>
+                                <p class="text-gray-300">El empleado no está en su puesto de trabajo</p>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-4 left-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
+                            <i class="fas fa-info-circle mr-1"></i> Solo se activa en horario laboral
+                        </div>
+                    </div>
+                    
+                    <!-- Sección de estadísticas y recomendaciones -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Estadística de productividad -->
+                        <div class="bg-gray-800 rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-chart-line mr-2 text-blue-400"></i> Productividad
+                            </h3>
+                            <div class="flex items-center justify-center mb-3 relative">
+                                <svg class="progress-ring" width="120" height="120">
+                                    <circle class="progress-ring__circle" stroke="#3B82F6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                                </svg>
+                                <div class="absolute text-2xl font-bold" id="productivityPercent"></div>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-400">Promedio semanal: <span class="text-white" id="weeklyProductivity"></span></p>
+                                <p class="text-sm text-gray-400">Tendencia: <span class="text-green-400" id="productivityTrend"></span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Análisis emocional -->
+                        <div class="bg-gray-800 rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-brain mr-2 text-purple-400"></i> Estado Emocional
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm">Positivo</span>
+                                        <span class="text-sm font-medium" id="happyPercent"></span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-green-500 h-2 rounded-full" id="happyBar"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm">Neutral</span>
+                                        <span class="text-sm font-medium" id="neutralPercent"></span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-yellow-500 h-2 rounded-full" id="neutralBar"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm">Negativo</span>
+                                        <span class="text-sm font-medium" id="sadPercent"></span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-2">
+                                        <div class="bg-red-500 h-2 rounded-full" id="sadBar"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recomendaciones -->
+                        <div class="bg-gray-800 rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-lightbulb mr-2 text-yellow-400"></i> Recomendaciones
+                            </h3>
+                            <div class="space-y-3" id="recommendationsContainer">
+                                <!-- Recomendaciones se llenarán dinámicamente -->
+                            </div>
+                            <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
+                                <i class="fas fa-plus mr-1"></i> Ver todas las recomendaciones
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráficos adicionales -->
+                    <div class="bg-gray-800 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-bar mr-2 text-green-400"></i> Rendimiento Semanal
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4" id="weeklyPerformance">
+                            <!-- Datos semanales se llenarán dinámicamente -->
+                        </div>
+                        <div class="h-40 bg-gray-700 rounded-lg flex items-center justify-center">
+                            [Gráfico de rendimiento semanal]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de premiación -->
+    <div id="awardDashboard" class="hidden fixed inset-0 bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-y-auto">
+        <div class="container mx-auto px-4 py-12 max-w-4xl">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold mb-4">Empleado del Mes</h1>
+                <p class="text-xl text-blue-200">Reconocimiento al desempeño excepcional</p>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl overflow-hidden shadow-2xl">
+                <div class="p-8 text-center">
+                    <div class="relative inline-block">
+                        <img id="awardEmployeeImg" src="" alt="Empleado del Mes" class="w-40 h-40 rounded-full border-4 border-yellow-400 shadow-lg mx-auto mb-6">
+                        <div class="absolute -top-4 -right-4 crown-icon">
+                            <i class="fas fa-crown text-4xl"></i>
+                        </div>
+                    </div>
+                    
+                    <h2 id="awardEmployeeName" class="text-3xl font-bold mb-2"></h2>
+                    <p id="awardEmployeeRole" class="text-xl text-blue-200 mb-6"></p>
+                    
+                    <div class="bg-white bg-opacity-20 rounded-xl p-6 mb-8">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-sm text-blue-300">Productividad</p>
+                                <p class="text-2xl font-bold" id="awardProductivity"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-blue-300">Días positivos</p>
+                                <p class="text-2xl font-bold" id="awardPositiveDays"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-blue-300">Feedback</p>
+                                <p class="text-2xl font-bold" id="awardFeedback"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-4">Motivación del premio</h3>
+                    <p id="awardMotivation" class="text-lg text-blue-100 mb-8"></p>
+                    
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-gift mr-2"></i> Otorgar Premio
+                        </button>
+                        <button id="backFromAward" class="bg-transparent hover:bg-white hover:bg-opacity-10 border border-white text-white font-bold py-3 px-6 rounded-lg">
+                            Volver al dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12">
+                <h2 class="text-2xl font-bold mb-6 text-center">Historial de Premiados</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="awardHistory">
+                    <!-- Historial se llenará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de empleados
+        const employees = [
+            {
+                id: 1,
+                name: "Juan Pérez",
+                role: "Desarrollador Senior",
+                img: "https://randomuser.me/api/portraits/men/32.jpg",
+                status: "positive",
+                workSchedule: "9:00-18:00",
+                productivity: 85,
+                weeklyProductivity: 82,
+                productivityTrend: "+3%",
+                happyPercent: 68,
+                neutralPercent: 22,
+                sadPercent: 10,
+                daysWorked: "22/24",
+                currentProject: "Sistema de Gestión SAMIE-",
+                lastEvaluation: "8.5/10",
+                isEmployeeOfMonth: false,
+                history: [
+                    { type: "positive", icon: "smile", color: "green", title: "Estado emocional positivo detectado", time: "Hoy a las 10:45 AM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Tarea completada: Módulo de análisis", time: "Ayer a las 3:30 PM" },
+                    { type: "break", icon: "coffee", color: "yellow", title: "Descanso prolongado detectado", time: "Ayer a las 4:15 PM" },
+                    { type: "feedback", icon: "comment-dots", color: "green", title: "Feedback positivo recibido", time: "Lunes a las 11:20 AM" },
+                    { type: "negative", icon: "frown", color: "red", title: "Estado emocional negativo", time: "Lunes a las 9:15 AM" }
+                ],
+                weeklyPerformance: [
+                    { day: "Lunes", value: 84 },
+                    { day: "Martes", value: 88 },
+                    { day: "Miércoles", value: 79 },
+                    { day: "Jueves", value: 82 },
+                    { day: "Viernes", value: 85 },
+                    { day: "Sabado", value:70}
+                ],
+                recommendations: [
+                    { type: "reinforce", color: "blue", text: "Buen desempeño en mañanas" },
+                    { type: "monitor", color: "purple", text: "Baja energía después del almuerzo" },
+                    { type: "reward", color: "green", text: "3 semanas consecutivas positivas" }
+                ]
+            },
+            {
+                id: 2,
+                name: "María Gómez",
+                role: "Líder de Ventas",
+                img: "https://randomuser.me/api/portraits/women/45.jpg",
+                status: "positive",
+                workSchedule: "9:00-18:00",
+                productivity: 92,
+                weeklyProductivity: 89,
+                productivityTrend: "+5%",
+                happyPercent: 75,
+                neutralPercent: 18,
+                sadPercent: 7,
+                daysWorked: "23/24",
+                currentProject: "Campaña de Verano",
+                lastEvaluation: "9.2/10",
+                isEmployeeOfMonth: true,
+                history: [
+                    { type: "positive", icon: "smile", color: "green", title: "Estado emocional positivo detectado", time: "Hoy a las 9:30 AM" },
+                    { type: "record", icon: "trophy", color: "yellow", title: "Récord de ventas diarias", time: "Ayer a las 5:00 PM" },
+                    { type: "feedback", icon: "comment-dots", color: "green", title: "Excelente feedback de cliente", time: "Ayer a las 2:15 PM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Presentación completada", time: "Martes a las 11:30 AM" },
+                    { type: "positive", icon: "smile", color: "green", title: "Estado emocional positivo", time: "Martes a las 9:00 AM" }
+                ],
+                weeklyPerformance: [
+                    { day: "Lunes", value: 89 },
+                    { day: "Martes", value: 92 },
+                    { day: "Miércoles", value: 88 },
+                    { day: "Jueves", value: 94 },
+                    { day: "Viernes", value: 90 },
+                    { day: "Sabado",value:85}
+                ],
+                recommendations: [
+                    { type: "reward", color: "green", text: "Excelente desempeño consistente" },
+                    { type: "promote", color: "blue", text: "Considerar para liderazgo de equipo" },
+                    { type: "share", color: "purple", text: "Compartir estrategias con el equipo" }
+                ]
+            },
+            {
+                id: 3,
+                name: "Carlos Ruiz",
+                role: "Soporte Técnico",
+                img: "https://randomuser.me/api/portraits/men/75.jpg",
+                status: "neutral",
+                workSchedule: "9:00-18:00",
+                productivity: 72,
+                weeklyProductivity: 68,
+                productivityTrend: "+1%",
+                happyPercent: 45,
+                neutralPercent: 40,
+                sadPercent: 15,
+                daysWorked: "20/24",
+                currentProject: "Migración a Windows 11",
+                lastEvaluation: "7.0/10",
+                isEmployeeOfMonth: false,
+                history: [
+                    { type: "neutral", icon: "meh", color: "yellow", title: "Estado emocional neutral", time: "Hoy a las 10:00 AM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Ticket crítico resuelto", time: "Ayer a las 4:30 PM" },
+                    { type: "negative", icon: "frown", color: "red", title: "Estado emocional negativo", time: "Ayer a las 11:15 AM" },
+                    { type: "feedback", icon: "comment-dots", color: "blue", title: "Feedback de supervisor", time: "Martes a las 3:00 PM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Capacitación completada", time: "Lunes a las 2:00 PM" }
+                ],
+                weeklyPerformance: [
+                    { day: "Lunes", value: 68 },
+                    { day: "Martes", value: 72 },
+                    { day: "Miércoles", value: 65 },
+                    { day: "Jueves", value: 70 },
+                    { day: "Viernes", value: 75 },
+                    { day: "Sabado", value: 70}
+                ],
+                recommendations: [
+                    { type: "support", color: "blue", text: "Ofrecer capacitación adicional" },
+                    { type: "checkin", color: "purple", text: "Revisar carga de trabajo" },
+                    { type: "encourage", color: "green", text: "Reforzar logros recientes" }
+                ]
+            },
+            {
+                id: 4,
+                name: "Ana López",
+                role: "Diseñadora UX",
+                img: "https://randomuser.me/api/portraits/women/68.jpg",
+                status: "neutral",
+                workSchedule: "9:00-18:00",
+                productivity: 78,
+                weeklyProductivity: 75,
+                productivityTrend: "+2%",
+                happyPercent: 55,
+                neutralPercent: 35,
+                sadPercent: 10,
+                daysWorked: "21/24",
+                currentProject: "Rediseño de Interfaz",
+                lastEvaluation: "7.8/10",
+                isEmployeeOfMonth: false,
+                history: [
+                    { type: "positive", icon: "smile", color: "green", title: "Estado emocional positivo", time: "Hoy a las 11:00 AM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Prototipo aprobado", time: "Ayer a las 3:00 PM" },
+                    { type: "meeting", icon: "users", color: "purple", title: "Reunión creativa productiva", time: "Ayer a las 10:00 AM" },
+                    { type: "neutral", icon: "meh", color: "yellow", title: "Estado emocional neutral", time: "Martes a las 4:00 PM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Iteración de diseño completada", time: "Lunes a las 5:30 PM" }
+                ],
+                weeklyPerformance: [
+                    { day: "Lunes", value: 75 },
+                    { day: "Martes", value: 80 },
+                    { day: "Miércoles", value: 72 },
+                    { day: "Jueves", value: 79 },
+                    { day: "Viernes", value: 82 },
+                    { day: "Sabado",value: 80}
+                ],
+                recommendations: [
+                    { type: "collaborate", color: "purple", text: "Emparejar con desarrolladores" },
+                    { type: "creative", color: "green", text: "Asignar proyectos más creativos" },
+                    { type: "feedback", color: "blue", text: "Proveer feedback de diseño" }
+                ]
+            },
+            {
+                id: 5,
+                name: "Pedro Sánchez",
+                role: "Analista de Datos",
+                img: "https://randomuser.me/api/portraits/men/85.jpg",
+                status: "negative",
+                workSchedule: "9:00-18:00",
+                productivity: 58,
+                weeklyProductivity: 55,
+                productivityTrend: "-2%",
+                happyPercent: 30,
+                neutralPercent: 45,
+                sadPercent: 25,
+                daysWorked: "18/24",
+                currentProject: "Análisis de Mercado Q2",
+                lastEvaluation: "6.0/10",
+                isEmployeeOfMonth: false,
+                history: [
+                    { type: "negative", icon: "frown", color: "red", title: "Estado emocional negativo", time: "Hoy a las 9:15 AM" },
+                    { type: "late", icon: "clock", color: "yellow", title: "Llegada tardía", time: "Ayer a las 9:45 AM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Reporte entregado con retraso", time: "Ayer a las 6:30 PM" },
+                    { type: "negative", icon: "frown", color: "red", title: "Estado emocional negativo", time: "Martes a las 2:00 PM" },
+                    { type: "meeting", icon: "users", color: "purple", title: "Reunión de seguimiento", time: "Lunes a las 11:00 AM" }
+                ],
+                weeklyPerformance: [
+                    { day: "Lunes", value: 60 },
+                    { day: "Martes", value: 55 },
+                    { day: "Miércoles", value: 52 },
+                    { day: "Jueves", value: 58 },
+                    { day: "Viernes", value: 62 },
+                    { day: "Sabado", value: 60 }
+                ],
+                recommendations: [
+                    { type: "support", color: "blue", text: "Ofrecer mentoría" },
+                    { type: "review", color: "purple", text: "Revisar carga de trabajo" },
+                    { type: "checkin", color: "green", text: "Programar reunión de apoyo" }
+                ]
+            },
+            {
+                id: 6,
+                name: "Lucía Fernández",
+                role: "Marketing Digital",
+                img: "https://randomuser.me/api/portraits/women/33.jpg",
+                status: "negative",
+                workSchedule: "9:00-18:00",
+                productivity: 62,
+                weeklyProductivity: 58,
+                productivityTrend: "-1%",
+                happyPercent: 35,
+                neutralPercent: 50,
+                sadPercent: 15,
+                daysWorked: "19/24",
+                currentProject: "Campaña en Redes Sociales",
+                lastEvaluation: "6.5/10",
+                isEmployeeOfMonth: false,
+                history: [
+                    { type: "neutral", icon: "meh", color: "yellow", title: "Estado emocional neutral", time: "Hoy a las 10:30 AM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Publicación programada", time: "Ayer a las 5:00 PM" },
+                    { type: "negative", icon: "frown", color: "red", title: "Estado emocional negativo", time: "Ayer a las 11:45 AM" },
+                    { type: "feedback", icon: "comment-dots", color: "blue", title: "Feedback de equipo", time: "Martes a las 3:30 PM" },
+                    { type: "task", icon: "tasks", color: "blue", title: "Análisis de competencia", time: "Lunes a las 4:00 PM" }
+                ],
+                weeklyPerformance: [
+                    { day: "Lunes", value: 65 },
+                    { day: "Martes", value: 60 },
+                    { day: "Miércoles", value: 58 },
+                    { day: "Jueves", value: 64 },
+                    { day: "Viernes", value: 62 },
+                    { day: "Sabado", value: 60 }
+                ],
+                recommendations: [
+                    { type: "training", color: "blue", text: "Capacitación en herramientas" },
+                    { type: "goals", color: "purple", text: "Revisar objetivos claros" },
+                    { type: "team", color: "green", text: "Fomentar trabajo en equipo" }
+                ]
+            }
+        ];
+
+        // Datos de premiados
+        const awardHistory = [
+            {
+                id: 2,
+                name: "María Gómez",
+                role: "Líder de Ventas",
+                img: "https://randomuser.me/api/portraits/women/45.jpg",
+                month: "Junio 2024",
+                motivation: "Récord de ventas y liderazgo excepcional"
+            },
+            {
+                id: 1,
+                name: "Juan Pérez",
+                role: "Desarrollador Senior",
+                img: "https://randomuser.me/api/portraits/men/32.jpg",
+                month: "Mayo 2024",
+                motivation: "Entrega excepcional del proyecto Alpha"
+            },
+            {
+                id: 4,
+                name: "Ana López",
+                role: "Diseñadora UX",
+                img: "https://randomuser.me/api/portraits/women/68.jpg",
+                month: "Abril 2024",
+                motivation: "Innovación en diseño de interfaces"
+            }
+        ];
+
+        // Elementos del DOM
+        const mainDashboard = document.getElementById('mainDashboard');
+        const employeeMonitoring = document.getElementById('employeeMonitoring');
+        const awardDashboard = document.getElementById('awardDashboard');
+        const employeesGrid = document.getElementById('employeesGrid');
+        const dashboardTitle = document.getElementById('dashboardTitle');
+        const performanceMarker = document.getElementById('performanceMarker');
+        const backButton = document.getElementById('backButton');
+        const awardButton = document.getElementById('awardButton');
+        const backFromAward = document.getElementById('backFromAward');
+
+        // Elementos de monitoreo
+        const monitoringEmployeeName = document.getElementById('monitoringEmployeeName');
+        const monitoringEmployeeRole = document.getElementById('monitoringEmployeeRole');
+        const monitoringEmployeeImg = document.getElementById('monitoringEmployeeImg');
+        const employeeStatus = document.getElementById('employeeStatus');
+        const workSchedule = document.getElementById('workSchedule');
+        const daysWorked = document.getElementById('daysWorked');
+        const currentProject = document.getElementById('currentProject');
+        const lastEvaluation = document.getElementById('lastEvaluation');
+        const historyContainer = document.getElementById('historyContainer');
+        const weeklyPerformance = document.getElementById('weeklyPerformance');
+        const recommendationsContainer = document.getElementById('recommendationsContainer');
+        const productivityPercent = document.getElementById('productivityPercent');
+        const weeklyProductivity = document.getElementById('weeklyProductivity');
+        const productivityTrend = document.getElementById('productivityTrend');
+        const happyPercent = document.getElementById('happyPercent');
+        const happyBar = document.getElementById('happyBar');
+        const neutralPercent = document.getElementById('neutralPercent');
+        const neutralBar = document.getElementById('neutralBar');
+        const sadPercent = document.getElementById('sadPercent');
+        const sadBar = document.getElementById('sadBar');
+        const monitoringStatus = document.getElementById('monitoringStatus');
+        const currentTime = document.getElementById('currentTime');
+        const videoElement = document.getElementById('videoElement');
+        const faceOverlay = document.getElementById('faceOverlay');
+        const nonWorkHoursOverlay = document.getElementById('nonWorkHoursOverlay');
+        const cameraDisabledOverlay = document.getElementById('cameraDisabledOverlay');
+
+        // Elementos de premiación
+        const awardEmployeeImg = document.getElementById('awardEmployeeImg');
+        const awardEmployeeName = document.getElementById('awardEmployeeName');
+        const awardEmployeeRole = document.getElementById('awardEmployeeRole');
+        const awardProductivity = document.getElementById('awardProductivity');
+        const awardPositiveDays = document.getElementById('awardPositiveDays');
+        const awardFeedback = document.getElementById('awardFeedback');
+        const awardMotivation = document.getElementById('awardMotivation');
+        const awardHistoryContainer = document.getElementById('awardHistory');
+
+        // Variables de estado
+        let isCameraActive = false;
+        let isWorkHours = false;
+        let isEmployeeAtDesk = true;
+        let currentEmployeeId = null;
+        let emotionInterval = null;
+
+        // Función para renderizar empleados según filtro
+        function renderEmployees(filter = 'all') {
+            employeesGrid.innerHTML = '';
+            
+            let filteredEmployees = employees;
+            let title = 'Todos los Empleados';
+            let averagePerformance = 0;
+            
+            if (filter === 'positive') {
+                filteredEmployees = employees.filter(e => e.status === 'positive');
+                title = 'Alto Desempeño';
+                averagePerformance = 85;
+            } else if (filter === 'neutral') {
+                filteredEmployees = employees.filter(e => e.status === 'neutral');
+                title = 'Desempeño Normal';
+                averagePerformance = 65;
+            } else if (filter === 'negative') {
+                filteredEmployees = employees.filter(e => e.status === 'negative');
+                title = 'Bajo Desempeño';
+                averagePerformance = 40;
+            } else {
+                // Calcular promedio para "todos"
+                const total = employees.reduce((sum, emp) => sum + emp.performance, 0);
+                averagePerformance = Math.round(total / employees.length);
+            }
+            
+            dashboardTitle.textContent = title;
+            performanceMarker.style.left = `${averagePerformance}%`;
+            
+            filteredEmployees.forEach(employee => {
+                let statusClass = '';
+                let statusText = '';
+                let statusColor = '';
+                let statusIcon = '';
+                
+                if (employee.status === 'positive') {
+                    statusClass = 'border-green-400';
+                    statusText = 'Positivo';
+                    statusColor = 'bg-green-100 text-green-800';
+                    statusIcon = 'fa-smile-beam';
+                } else if (employee.status === 'neutral') {
+                    statusClass = 'border-yellow-400';
+                    statusText = 'Neutral';
+                    statusColor = 'bg-yellow-100 text-yellow-800';
+                    statusIcon = 'fa-meh';
+                } else {
+                    statusClass = 'border-red-400';
+                    statusText = 'Negativo';
+                    statusColor = 'bg-red-100 text-red-800';
+                    statusIcon = 'fa-frown';
+                }
+                
+                const employeeCard = document.createElement('div');
+                employeeCard.className = `employee-card bg-white rounded-lg shadow-md overflow-hidden border-l-4 ${statusClass}`;
+                employeeCard.setAttribute('data-employee-id', employee.id);
+                
+                employeeCard.innerHTML = `
+                    <div class="p-4 flex items-start">
+                        <img src="${employee.img}" alt="${employee.name}" class="w-16 h-16 rounded-full border-2 border-white shadow">
+                        <div class="ml-4 flex-1">
+                            <h3 class="font-bold text-gray-800 employee-name cursor-pointer hover:text-blue-600">${employee.name}</h3>
+                            <p class="text-sm text-gray-600">${employee.role}</p>
+                            <div class="mt-2 flex items-center">
+                                <span class="text-xs px-2 py-1 ${statusColor} rounded-full flex items-center">
+                                    <i class="fas ${statusIcon} mr-1"></i> ${statusText}
+                                </span>
+                                <span class="ml-2 text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                    ${employee.productivity}% productividad
+                                </span>
+                                ${employee.isEmployeeOfMonth ? 
+                                    '<span class="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full flex items-center">' +
+                                    '<i class="fas fa-crown mr-1"></i> Empleado del mes</span>' : ''}
+                            </div>
+                        </div>
+                        ${employee.status === 'positive' ? 
+                            '<div class="text-yellow-400">' +
+                            '<i class="fas fa-crown crown-icon"></i></div>' : 
+                            '<button class="text-blue-600 hover:text-blue-800">' +
+                            '<i class="fas fa-ellipsis-v"></i></button>'}
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 flex justify-between items-center">
+                        <div class="text-sm">
+                            <span class="text-gray-500">Días trabajados:</span>
+                            <span class="ml-1 font-medium">${employee.daysWorked}</span>
+                        </div>
+                        <button class="view-detail-btn text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg">
+                            Monitorear
+                        </button>
+                    </div>
+                `;
+                
+                employeesGrid.appendChild(employeeCard);
+            });
+            
+            // Añadir event listeners a los nuevos elementos
+            addEventListeners();
+        }
+
+        // Función para añadir event listeners
+        function addEventListeners() {
+            document.querySelectorAll('.employee-name').forEach(nameElement => {
+                nameElement.addEventListener('click', function() {
+                    const card = this.closest('.employee-card');
+                    const employeeId = card.getAttribute('data-employee-id');
+                    showMonitoringDashboard(employeeId);
+                });
+            });
+
+            document.querySelectorAll('.view-detail-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.employee-card');
+                    const employeeId = card.getAttribute('data-employee-id');
+                    showMonitoringDashboard(employeeId);
+                });
+            });
+        }
+
+        // Función para mostrar el dashboard de monitoreo
+        function showMonitoringDashboard(employeeId) {
+            currentEmployeeId = employeeId;
+            const employee = employees.find(e => e.id == employeeId);
+            
+            if (!employee) return;
+            
+            // Cargar datos del empleado
+            monitoringEmployeeName.textContent = employee.name;
+            monitoringEmployeeRole.textContent = employee.role;
+            monitoringEmployeeImg.src = employee.img;
+            
+            // Configurar estado según datos
+            if (employee.status === 'positive') {
+                employeeStatus.textContent = 'Alto desempeño';
+                employeeStatus.className = 'px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium';
+            } else if (employee.status === 'neutral') {
+                employeeStatus.textContent = 'Desempeño normal';
+                employeeStatus.className = 'px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium';
+            } else {
+                employeeStatus.textContent = 'Bajo desempeño';
+                employeeStatus.className = 'px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium';
+            }
+            
+            workSchedule.textContent = employee.workSchedule;
+            daysWorked.textContent = employee.daysWorked;
+            currentProject.textContent = employee.currentProject;
+            lastEvaluation.textContent = employee.lastEvaluation;
+            
+            // Configurar estadísticas
+            productivityPercent.textContent = employee.productivity + '%';
+            weeklyProductivity.textContent = employee.weeklyProductivity + '%';
+            productivityTrend.textContent = employee.productivityTrend;
+            
+            happyPercent.textContent = employee.happyPercent + '%';
+            happyBar.style.width = employee.happyPercent + '%';
+            neutralPercent.textContent = employee.neutralPercent + '%';
+            neutralBar.style.width = employee.neutralPercent + '%';
+            sadPercent.textContent = employee.sadPercent + '%';
+            sadBar.style.width = employee.sadPercent + '%';
+            
+            // Configurar anillo de productividad
+            const circle = document.querySelector('.progress-ring__circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (employee.productivity / 100) * circumference;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = offset;
+            
+            // Llenar historial
+            historyContainer.innerHTML = '';
+            employee.history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'flex items-start';
+                historyItem.innerHTML = `
+                    <div class="flex-shrink-0 bg-${item.color}-100 rounded-full p-2">
+                        <i class="fas fa-${item.icon} text-${item.color}-600 text-sm"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium">${item.title}</p>
+                        <p class="text-xs text-gray-400">${item.time}</p>
+                    </div>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+            
+            // Llenar rendimiento semanal
+            weeklyPerformance.innerHTML = '';
+            employee.weeklyPerformance.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'bg-gray-700 p-3 rounded-lg text-center';
+                dayElement.innerHTML = `
+                    <p class="text-sm text-gray-400">${day.day}</p>
+                    <p class="text-xl font-bold">${day.value}%</p>
+                `;
+                weeklyPerformance.appendChild(dayElement);
+            });
+            
+            // Llenar recomendaciones
+            recommendationsContainer.innerHTML = '';
+            employee.recommendations.forEach(rec => {
+                const recElement = document.createElement('div');
+                recElement.className = `bg-${rec.color}-900 bg-opacity-30 p-3 rounded-lg border-l-4 border-${rec.color}-400`;
+                recElement.innerHTML = `
+                    <p class="text-sm"><span class="font-medium">${rec.text.split(':')[0]}:</span> ${rec.text.split(':')[1] || rec.text}</p>
+                `;
+                recommendationsContainer.appendChild(recElement);
+            });
+            
+            // Cambiar a la vista de monitoreo
+            mainDashboard.classList.add('hidden');
+            awardDashboard.classList.add('hidden');
+            employeeMonitoring.classList.remove('hidden');
+            
+            // Iniciar monitoreo
+            initMonitoring();
+        }
+
+        // Función para mostrar el dashboard de premiación
+        function showAwardDashboard() {
+            const employeeOfMonth = employees.find(e => e.isEmployeeOfMonth);
+            
+            if (!employeeOfMonth) return;
+            
+            // Cargar datos del empleado del mes
+            awardEmployeeImg.src = employeeOfMonth.img;
+            awardEmployeeName.textContent = employeeOfMonth.name;
+            awardEmployeeRole.textContent = employeeOfMonth.role;
+            awardProductivity.textContent = employeeOfMonth.productivity + '%';
+            awardPositiveDays.textContent = employeeOfMonth.daysWorked.split('/')[0] + '/' + employeeOfMonth.daysWorked.split('/')[1];
+            awardFeedback.textContent = employeeOfMonth.lastEvaluation;
+            
+            // Buscar motivación en el historial
+            const awardInfo = awardHistory.find(a => a.id === employeeOfMonth.id);
+            awardMotivation.textContent = awardInfo ? awardInfo.motivation : "Desempeño excepcional durante el mes";
+            
+            // Llenar historial de premiados
+            awardHistoryContainer.innerHTML = '';
+            awardHistory.forEach(award => {
+                const awardItem = document.createElement('div');
+                awardItem.className = 'bg-white bg-opacity-10 rounded-xl p-4';
+                awardItem.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <img src="${award.img}" class="w-12 h-12 rounded-full mr-3">
+                        <div>
+                            <h4 class="font-semibold">${award.name}</h4>
+                            <p class="text-sm text-blue-200">${award.month}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-blue-100">${award.motivation}</p>
+                `;
+                awardHistoryContainer.appendChild(awardItem);
+            });
+            
+            // Cambiar a la vista de premiación
+            mainDashboard.classList.add('hidden');
+            employeeMonitoring.classList.add('hidden');
+            awardDashboard.classList.remove('hidden');
+        }
+
+        // Función para actualizar la hora actual
+        function updateCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            currentTime.textContent = `${hours}:${minutes}`;
+            
+            // Verificar si es horario laboral (9:00-18:00)
+            const currentHour = now.getHours();
+            isWorkHours = currentHour >= 9 && currentHour < 18;
+            
+            // Actualizar estado de la cámara
+            updateCameraStatus();
+        }
+        
+        // Función para actualizar el estado de la cámara
+        function updateCameraStatus() {
+            if (!isWorkHours) {
+                monitoringStatus.textContent = "Fuera del horario laboral";
+                monitoringStatus.className = "text-center text-yellow-400";
+                nonWorkHoursOverlay.classList.remove('hidden');
+                cameraDisabledOverlay.classList.add('hidden');
+                stopCamera();
+                return;
+            }
+            
+            if (!isEmployeeAtDesk) {
+                monitoringStatus.textContent = "Empleado no detectado";
+                monitoringStatus.className = "text-center text-red-400";
+                nonWorkHoursOverlay.classList.add('hidden');
+                cameraDisabledOverlay.classList.remove('hidden');
+                stopCamera();
+                return;
+            }
+            
+            monitoringStatus.textContent = "Monitoreo activo";
+            monitoringStatus.className = "text-center text-green-400";
+            nonWorkHoursOverlay.classList.add('hidden');
+            cameraDisabledOverlay.classList.add('hidden');
+            startCamera();
+        }
+        
+        // Función para iniciar la cámara (simulada)
+        function startCamera() {
+            if (isCameraActive) return;
+            
+            console.log("Iniciando cámara (simulación)");
+            isCameraActive = true;
+            
+            // Simular feed de video
+            videoElement.src = "https://samplelib.com/lib/preview/mp4/sample-5s.mp4";
+            
+            // Mostrar overlay de detección facial
+            faceOverlay.classList.remove('hidden');
+            faceOverlay.style.width = '150px';
+            faceOverlay.style.height = '200px';
+            faceOverlay.style.top = '30%';
+            faceOverlay.style.left = '40%';
+            
+            // Simular análisis emocional
+            simulateEmotionAnalysis();
+        }
+        
+        // Función para detener la cámara
+        function stopCamera() {
+            if (!isCameraActive) return;
+            
+            console.log("Deteniendo cámara (simulación)");
+            isCameraActive = false;
+            videoElement.src = '';
+            faceOverlay.classList.add('hidden');
+            
+            if (emotionInterval) {
+                clearInterval(emotionInterval);
+                emotionInterval = null;
+            }
+        }
+        
+        // Función para simular análisis emocional
+        function simulateEmotionAnalysis() {
+            const employee = employees.find(e => e.id == currentEmployeeId);
+            if (!employee) return;
+            
+            // Limpiar intervalo anterior si existe
+            if (emotionInterval) clearInterval(emotionInterval);
+            
+            // Actualizar emociones aleatoriamente dentro de rangos razonables
+            emotionInterval = setInterval(() => {
+                // Variar los valores alrededor de los valores base del empleado
+                const happyVariation = Math.random() * 10 - 5; // -5 a +5
+                const neutralVariation = Math.random() * 10 - 5;
+                const sadVariation = Math.random() * 5 - 2.5;
+                
+                let happy = Math.max(0, Math.min(100, employee.happyPercent + happyVariation));
+                let neutral = Math.max(0, Math.min(100, employee.neutralPercent + neutralVariation));
+                let sad = Math.max(0, Math.min(100, employee.sadPercent + sadVariation));
+                
+                // Normalizar para que sumen 100%
+                const total = happy + neutral + sad;
+                happy = Math.round((happy / total) * 100);
+                neutral = Math.round((neutral / total) * 100);
+                sad = Math.round((sad / total) * 100);
+                
+                happyPercent.textContent = happy + '%';
+                happyBar.style.width = happy + '%';
+                neutralPercent.textContent = neutral + '%';
+                neutralBar.style.width = neutral + '%';
+                sadPercent.textContent = sad + '%';
+                sadBar.style.width = sad + '%';
+                
+                // Cambiar color del overlay según emoción dominante
+                if (happy > 70) {
+                    faceOverlay.style.borderColor = 'rgba(0, 255, 0, 0.7)';
+                    faceOverlay.style.background = 'rgba(0, 255, 0, 0.1)';
+                } else if (neutral > happy && neutral > sad) {
+                    faceOverlay.style.borderColor = 'rgba(255, 255, 0, 0.7)';
+                    faceOverlay.style.background = 'rgba(255, 255, 0, 0.1)';
+                } else {
+                    faceOverlay.style.borderColor = 'rgba(255, 0, 0, 0.7)';
+                    faceOverlay.style.background = 'rgba(255, 0, 0, 0.1)';
+                }
+            }, 3000);
+        }
+        
+        // Inicializar monitoreo
+        function initMonitoring() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 60000); // Actualizar cada minuto
+            
+            // Simular que el empleado está/no está en su puesto (para demo)
+            setTimeout(() => {
+                isEmployeeAtDesk = false;
+                updateCameraStatus();
+                
+                setTimeout(() => {
+                    isEmployeeAtDesk = true;
+                    updateCameraStatus();
+                }, 10000);
+            }, 15000);
+        }
+
+        // Filtros del dashboard
+        document.querySelectorAll('.dashboard-filter').forEach(filter => {
+            filter.addEventListener('click', function() {
+                const filterType = this.getAttribute('data-filter');
+                renderEmployees(filterType);
+            });
+        });
+
+        // Botón de premiación
+        awardButton.addEventListener('click', showAwardDashboard);
+
+        // Botón para volver desde premiación
+        backFromAward.addEventListener('click', function() {
+            awardDashboard.classList.add('hidden');
+            mainDashboard.classList.remove('hidden');
+        });
+
+        // Botón para volver desde monitoreo
+        backButton.addEventListener('click', function() {
+            stopCamera();
+            employeeMonitoring.classList.add('hidden');
+            mainDashboard.classList.remove('hidden');
+        });
+
+        // Inicializar la aplicación
+        renderEmployees();
+    </script>
+</body>
+</html>
