@@ -159,172 +159,168 @@
         </div>
     </div>
 
-    <!-- Pantalla de monitoreo de empleado -->
-    <div id="employeeMonitoring" class="hidden fixed inset-0 bg-gray-900 text-white overflow-y-auto">
-        <div class="container mx-auto px-4 py-8">
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-8">
-                <button id="backButton" class="flex items-center text-blue-400 hover:text-blue-300">
-                    <i class="fas fa-arrow-left mr-2"></i> Volver al dashboard
-                </button>
-                <div>
-                    <h1 class="text-3xl font-bold text-center">Monitoreo en Tiempo Real</h1>
-                    <p class="text-center text-blue-300" id="monitoringStatus"></p>
-                </div>
-                <div class="w-32 flex justify-end">
-                    <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
-                        <i class="fas fa-clock mr-2"></i>
-                        <span id="currentTime">--:--</span>
-                    </span>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Columna izquierda: Información del empleado -->
-                <div class="lg:col-span-1 bg-gray-800 rounded-xl p-6">
-                    <div class="flex items-center mb-6">
-                        <img id="monitoringEmployeeImg" src="" alt="Empleado" class="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg">
-                        <div class="ml-4">
-                            <h2 id="monitoringEmployeeName" class="text-2xl font-bold"></h2>
-                            <p id="monitoringEmployeeRole" class="text-gray-400"></p>
-                            <div class="mt-1 flex items-center">
-                                <span id="employeeStatus" class="px-2 py-1 rounded-full text-xs font-medium"></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-gray-700 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold mb-2 flex items-center">
-                                <i class="fas fa-user-tag mr-2 text-blue-400"></i> Información Laboral
-                            </h3>
-                            <div class="space-y-2">
-                                <p><span class="text-gray-400">Horario:</span> <span id="workSchedule"></span></p>
-                                <p><span class="text-gray-400">Días trabajados:</span> <span id="daysWorked"></span></p>
-                                <p><span class="text-gray-400">Proyecto actual:</span> <span id="currentProject"></span></p>
-                                <p><span class="text-gray-400">Última evaluación:</span> <span id="lastEvaluation"></span></p>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gray-700 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold mb-2 flex items-center">
-                                <i class="fas fa-history mr-2 text-purple-400"></i> Historial Reciente
-                            </h3>
-                            <div class="space-y-3 max-h-60 overflow-y-auto" id="historyContainer">
-                                <!-- Historial se llenará dinámicamente -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Columna central: Cámara y emociones -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Video Feed con overlay de horario no laboral -->
-                    <div class="bg-gray-800 rounded-xl overflow-hidden relative">
-                        <div class="relative">
-                            <video id="videoElement" autoplay playsinline class="w-full h-auto max-h-96 object-cover"></video>
-                            <div id="faceOverlay" class="face-overlay hidden"></div>
-                            <div id="nonWorkHoursOverlay" class="blur-overlay hidden">
-                                <i class="fas fa-clock text-5xl mb-4 text-yellow-400"></i>
-                                <h3 class="text-xl font-bold mb-2">Fuera del horario laboral</h3>
-                                <p class="text-gray-300">La cámara se activará automáticamente<br>de 9:00 AM a 6:00 PM</p>
-                            </div>
-                            <div id="cameraDisabledOverlay" class="blur-overlay hidden">
-                                <i class="fas fa-video-slash text-5xl mb-4 text-red-400"></i>
-                                <h3 class="text-xl font-bold mb-2">Cámara no disponible</h3>
-                                <p class="text-gray-300">El empleado no está en su puesto de trabajo</p>
-                            </div>
-                        </div>
-                        <div class="absolute bottom-4 left-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
-                            <i class="fas fa-info-circle mr-1"></i> Solo se activa en horario laboral
-                        </div>
-                    </div>
-                    
-                    <!-- Sección de estadísticas y recomendaciones -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Estadística de productividad -->
-                        <div class="bg-gray-800 rounded-xl p-6">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                                <i class="fas fa-chart-line mr-2 text-blue-400"></i> Productividad
-                            </h3>
-                            <div class="flex items-center justify-center mb-3 relative">
-                                <svg class="progress-ring" width="120" height="120">
-                                    <circle class="progress-ring__circle" stroke="#3B82F6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
-                                </svg>
-                                <div class="absolute text-2xl font-bold" id="productivityPercent"></div>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-sm text-gray-400">Promedio semanal: <span class="text-white" id="weeklyProductivity"></span></p>
-                                <p class="text-sm text-gray-400">Tendencia: <span class="text-green-400" id="productivityTrend"></span></p>
-                            </div>
-                        </div>
-                        
-                        <!-- Análisis emocional -->
-                        <div class="bg-gray-800 rounded-xl p-6">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                                <i class="fas fa-brain mr-2 text-purple-400"></i> Estado Emocional
-                            </h3>
-                            <div class="space-y-3">
-                                <div>
-                                    <div class="flex justify-between mb-1">
-                                        <span class="text-sm">Positivo</span>
-                                        <span class="text-sm font-medium" id="happyPercent"></span>
-                                    </div>
-                                    <div class="w-full bg-gray-700 rounded-full h-2">
-                                        <div class="bg-green-500 h-2 rounded-full" id="happyBar"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between mb-1">
-                                        <span class="text-sm">Neutral</span>
-                                        <span class="text-sm font-medium" id="neutralPercent"></span>
-                                    </div>
-                                    <div class="w-full bg-gray-700 rounded-full h-2">
-                                        <div class="bg-yellow-500 h-2 rounded-full" id="neutralBar"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between mb-1">
-                                        <span class="text-sm">Negativo</span>
-                                        <span class="text-sm font-medium" id="sadPercent"></span>
-                                    </div>
-                                    <div class="w-full bg-gray-700 rounded-full h-2">
-                                        <div class="bg-red-500 h-2 rounded-full" id="sadBar"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Recomendaciones -->
-                        <div class="bg-gray-800 rounded-xl p-6">
-                            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                                <i class="fas fa-lightbulb mr-2 text-yellow-400"></i> Recomendaciones
-                            </h3>
-                            <div class="space-y-3" id="recommendationsContainer">
-                                <!-- Recomendaciones se llenarán dinámicamente -->
-                            </div>
-                            <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
-                                <i class="fas fa-plus mr-1"></i> Ver todas las recomendaciones
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Gráficos adicionales -->
-                    <div class="bg-gray-800 rounded-xl p-6">
-                        <h3 class="text-lg font-semibold mb-4 flex items-center">
-                            <i class="fas fa-chart-bar mr-2 text-green-400"></i> Rendimiento Semanal
-                        </h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4" id="weeklyPerformance">
-                            <!-- Datos semanales se llenarán dinámicamente -->
-                        </div>
-                        <div class="h-40 bg-gray-700 rounded-lg flex items-center justify-center">
-                            [Gráfico de rendimiento semanal]
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Pantalla de monitoreo de empleado mejorada con fondo blanco y estilo limpio -->
+<div id="employeeMonitoring" class="hidden fixed inset-0 bg-white text-gray-900 overflow-y-auto">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <button id="backButton" class="flex items-center text-blue-600 hover:text-blue-500">
+        <i class="fas fa-arrow-left mr-2"></i> Volver al dashboard
+      </button>
+      <div class="text-center">
+        <h1 class="text-3xl font-bold">Monitoreo en Tiempo Real</h1>
+        <p class="text-blue-500" id="monitoringStatus"></p>
+      </div>
+      <div class="w-32 flex justify-end">
+        <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+          <i class="fas fa-clock mr-2"></i>
+          <span id="currentTime">--:--</span>
+        </span>
+      </div>
     </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Columna izquierda -->
+      <div class="lg:col-span-1 bg-gray-100 rounded-xl p-6 shadow">
+        <div class="flex items-center mb-6">
+          <img id="monitoringEmployeeImg" src="" alt="Empleado" class="w-20 h-20 rounded-full border-4 border-blue-500 shadow">
+          <div class="ml-4">
+            <h2 id="monitoringEmployeeName" class="text-2xl font-bold"></h2>
+            <p id="monitoringEmployeeRole" class="text-gray-600"></p>
+            <div class="mt-1">
+              <span id="employeeStatus" class="px-2 py-1 rounded-full text-xs font-medium bg-gray-200"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-white rounded-lg p-4 shadow">
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+              <i class="fas fa-user-tag mr-2 text-blue-500"></i> Información Laboral
+            </h3>
+            <div class="space-y-1 text-sm text-gray-700">
+              <p><strong>Horario:</strong> <span id="workSchedule"></span></p>
+              <p><strong>Días trabajados:</strong> <span id="daysWorked"></span></p>
+              <p><strong>Proyecto actual:</strong> <span id="currentProject"></span></p>
+              <p><strong>Última evaluación:</strong> <span id="lastEvaluation"></span></p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg p-4 shadow">
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+              <i class="fas fa-history mr-2 text-purple-500"></i> Historial Reciente
+            </h3>
+            <div class="space-y-2 max-h-60 overflow-y-auto text-sm text-gray-700" id="historyContainer">
+              <!-- Historial dinámico -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna central -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Video -->
+        <div class="bg-gray-100 rounded-xl overflow-hidden relative shadow">
+          <video id="videoElement" autoplay playsinline class="w-full h-auto max-h-96 object-cover"></video>
+          <div id="faceOverlay" class="face-overlay hidden"></div>
+          <div id="nonWorkHoursOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 text-center text-gray-700 text-sm">
+            <i class="fas fa-clock text-5xl text-yellow-500 mb-2"></i>
+            <h3 class="text-xl font-bold">Fuera del horario laboral</h3>
+            <p>La cámara se activará automáticamente<br>de 9:00 AM a 6:00 PM</p>
+          </div>
+          <div id="cameraDisabledOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 text-center text-gray-700 text-sm hidden">
+            <i class="fas fa-video-slash text-5xl text-red-500 mb-2"></i>
+            <h3 class="text-xl font-bold">Cámara no disponible</h3>
+            <p>El empleado no está en su puesto de trabajo</p>
+          </div>
+          <div class="absolute bottom-4 left-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full flex items-center shadow">
+            <i class="fas fa-info-circle mr-1"></i> Solo se activa en horario laboral
+          </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl p-6 shadow">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+              <i class="fas fa-chart-line mr-2 text-blue-500"></i> Productividad
+            </h3>
+            <div class="flex items-center justify-center mb-3 relative">
+              <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring__circle" stroke="#3B82F6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+              </svg>
+              <div class="absolute text-2xl font-bold text-gray-900" id="productivityPercent"></div>
+            </div>
+            <div class="text-center text-sm text-gray-600">
+              <p>Promedio semanal: <span class="font-medium" id="weeklyProductivity"></span></p>
+              <p>Tendencia: <span class="text-green-500 font-medium" id="productivityTrend"></span></p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+              <i class="fas fa-brain mr-2 text-purple-500"></i> Estado Emocional
+            </h3>
+            <div class="space-y-3 text-sm">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span>Positivo</span>
+                  <span id="happyPercent"></span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-green-500 h-2 rounded-full" id="happyBar"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span>Neutral</span>
+                  <span id="neutralPercent"></span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-yellow-500 h-2 rounded-full" id="neutralBar"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span>Negativo</span>
+                  <span id="sadPercent"></span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-red-500 h-2 rounded-full" id="sadBar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+              <i class="fas fa-lightbulb mr-2 text-yellow-500"></i> Recomendaciones
+            </h3>
+            <div class="space-y-2 text-sm text-gray-700" id="recommendationsContainer">
+              <!-- Recomendaciones dinámicas -->
+            </div>
+            <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
+              <i class="fas fa-plus mr-1"></i> Ver todas las recomendaciones
+            </button>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="bg-white rounded-xl p-6 shadow">
+          <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-chart-bar mr-2 text-green-500"></i> Rendimiento Semanal
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4" id="weeklyPerformance">
+            <!-- Datos semanales dinámicos -->
+          </div>
+          <div class="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+            [Gráfico de rendimiento semanal]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <!-- Pantalla de premiación -->
     <div id="awardDashboard" class="hidden fixed inset-0 bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-y-auto">
