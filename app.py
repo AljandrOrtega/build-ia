@@ -48,12 +48,11 @@ EMOTION_RECOMMENDATIONS = {
     "lonely": "Recomendación: Fomenta el trabajo en equipo y actividades de integración"
 }
 
-
-@app.route('/')
+@app.route('/index')
 def index():
     return render_template('index.html')
 
-@app.route('/dashboard')
+@app.route('/')
 def dashboard():
     return render_template('dashboard.html')
 
